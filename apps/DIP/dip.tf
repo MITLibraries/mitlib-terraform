@@ -39,7 +39,7 @@ resource "aws_iam_access_key" "default" {
 module "aspace_s3" {
   source                 = "github.com/mitlibraries/tf-mod-s3-iam?ref=0.12"
   name                   = "aspace-oai-s3"
-  expire_objects_enabled = "true"
+  expire_objects_enabled = "false"
   expiration_days        = "60"
 }
 
