@@ -6,6 +6,7 @@ This folder contains AWS resources needed for the deployment of the [Libraries A
 * An S3 bucket for storing static web files
 * An AWS Cloudfront CDN for this S3 Bucket
 * A Route53 alias
+* An index.html file is uploaded to the S3 Bucket and set as the default in the Cloudfront CDN
 
 ### Input Variables
 | Name | Description | Type | Default | Required |
