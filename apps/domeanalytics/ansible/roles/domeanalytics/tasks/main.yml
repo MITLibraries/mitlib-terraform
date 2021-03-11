@@ -1,0 +1,176 @@
+# Make sure the cache is upto date so that we don't install any programs
+# with security vulnerabilites
+- name: Update apt-cache
+  apt: update_cache=yes
+
+# First we pick up all the latest packages for security patches and
+# bug fixes
+- name: Upgrade all apt packages
+  apt: upgrade=dist force_apt_get=yes
+
+# Include the vars file
+- name: Include vars file
+  include_vars:
+    file: tf_ansible_vars_file.yml
+# Include the vars file
+- name: Include vars file
+  include_vars:
+    file: main.yml
+
+# General base packages
+- name: Install the general base packages
+  apt: pkg={{ item }}
+  with_items:
+    - hesiod
+#    - libpam-krb5
+    - nfs-common
+
+# These base packages are dependencies for installing python
+- name: Install packages needed for installing Python
+  apt: pkg={{ item }}
+  with_items:
+    - wget
+    - curl
+    - xz-utils
+    - build-essential
+    - libsqlite3-dev
+    - libreadline-dev
+    - libssl-dev
+    - openssl
+
+# Install the Python 3.8 platform (currently newest available)
+- name: Install Python 3.8
+  apt:
+    name: python3.8
+    state: present
+
+# Install the postgresql client binaries and libraries
+- name: Install Postgres Client and Libraries
+  apt:
+    name: postgresql-client
+    state: present
+
+# Install the Python 3 Postgres Libraries
+- name: Python3 Postgresl Libs
+  apt:
+    name: python3-postgresql
+    state: present
+
+# Install Hesiod (used for Athena user account creation)
+- name: Hesiod
+  apt:
+    name: python3.8
+    state: present
+
+# Create our scripts directory
+- file:
+    path: /usr/local/scripts
+    state: directory
+
+# Script to create Athena accounts with Hesoid data
+- copy:
+    src: files/hesadd
+    dest: /usr/local/scripts/hesadd
+    owner: root
+    group: root
+    mode: u+rwx,g-wx,o-wx
+
+# Create our scripts directory
+- file:
+    path: /mnt/workspace
+    state: directory
+
+# Create the user accounts
+# Add Users
+- name: Add users
+  shell: /usr/local/scripts/hesadd "{{ item }}"
+  with_items: "{{ domeanalytics_users }}"
+
+# Create .ssh directories
+- name: SSH Directories
+  file:
+    path: /home/{{ item }}/.ssh
+    state: directory
+    owner: "{{ item }}"
+    group: "{{ item }}"
+    mode: u+rwx,g-rwx,o-rwx
+  with_items:
+    - vab
+    - carlj
+    - ehanson
+
+# Install pubkeys
+- name: Install pubkeys
+  copy:
+    src: files/pubkeys/{{ item }}.pub
+    dest: /home/{{ item }}/.ssh/authorized_keys
+    owner: "{{ item }}"
+    group: "{{ item }}"
+    mode: u-x,g-rwx,o-rwx
+  with_items:
+    "{{ domeanalytics_users }}"
+
+# This stanza make sure that the sudo group has sudo access.
+- lineinfile:
+    dest: /etc/sudoers
+    regexp: '%sudo'
+    line: '%sudo	ALL=(ALL:ALL) ALL'
+
+# Add admins to the sudo group. Group members should be changed to a
+# variable later.
+- name: Add admins to wheel group
+  lineinfile:
+    dest: /etc/group
+    regexp: 'sudo'
+    line: sudo:x:27:vab,ter
+
+# Set Up Kerberos Authentication
+- name: Install krb5.conf file
+  copy:
+    src: files/etc/krb5.conf
+    dest: /etc/krb5.conf
+    owner: root
+    group: root
+    mode: u-x,g-wx,o-wx
+
+# Set up the NFS (Amazon EFS) Mount
+# This code needs to be modified so that the TerraForm passes the mount
+# location and the EFS access point to the Ansible.
+- name: Set Up NFS Mount
+  lineinfile:
+    dest: /etc/fstab
+    regexp: '^amazonaws.com'
+    line: '{{ tf_efs_target }}:/ {{ tf_mountpoint }} nfs4 nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport 0 0'
+    create: yes
+
+- name: Mount the EFS file system
+  shell: mount -a
+
+# Create symlinks to EFS partition
+- name: EFS Directories
+  file:
+    path: /mnt/workspace/{{ item }}
+    state: directory
+    owner: "{{ item }}"
+    group: "{{ item }}"
+    mode: u+rwx,g-w,o-w
+  with_items:
+    - vab
+    - carlj
+    - ehanson
+
+# Create symlinks to EFS partition
+- name: EFS Symlinks
+  file:
+    src: /mnt/workspace/{{ item }}
+    dest: /home/{{item}}/workspace
+    state: link
+    owner: "{{ item }}"
+    group: "{{ item }}"
+  with_items:
+    '{{ domeanalytics_users }}'
+
+# Restart Services to reload Athena related config changes
+#- name: Restart sshd for Krb changes
+#  command: /bin/true
+#  notify: sshd-restart

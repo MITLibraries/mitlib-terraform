@@ -1,0 +1,8 @@
+---
+- name: Install Dome Analytics Role
+  hosts: domeanalytics-all
+  roles:
+    - domeanalytics
+  become: yes
+  become_user: root
+  become_method: sudo

@@ -1,0 +1,33 @@
+#!/usr/bin/perl
+
+unless(@ARGV)
+{
+	print "Format: hesadd (Athena user name) (Athena user name) ...\n";
+	exit(0);
+}
+else
+{
+	while($acct = shift)
+	{
+		print "Adding Account:  $acct\n";
+		if($rslt = `hesinfo $acct passwd`)
+		{
+
+			($username,$trash,$uid,$gid,$gecos,$trash,$trash) =
+				split(/:/,$rslt);
+
+			unless(`useradd -d /home/$username -c \"$gecos\" -s /usr/bin/bash -m -u $uid $username`)
+			{
+				print "Account added: $acct\n";
+			}
+			else
+			{
+				print "Fatal useradd error:  $acct\n";
+			}
+		}
+		else
+		{
+			print "Fatal Hesoid error:  $acct\n";
+		}
+	}
+}
