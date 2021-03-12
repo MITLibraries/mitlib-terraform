@@ -41,13 +41,13 @@ resource "aws_transfer_user" "mitlib" {
 resource "aws_transfer_ssh_key" "exlibris" {
   server_id = aws_transfer_server.alma_sftp.id
   user_name = aws_transfer_user.exlibris.user_name
-  body      = var.exlibris_ssh
+  body      = var.exlibris_ssh_pubkey
 }
 
 resource "aws_transfer_ssh_key" "mitlib" {
   server_id = aws_transfer_server.alma_sftp.id
   user_name = aws_transfer_user.mitlib.user_name
-  body      = var.mitlib_ssh
+  body      = var.mitlib_ssh_pubkey
 }
 
 #Create IAM role for the transfer server
@@ -122,7 +122,7 @@ resource "aws_iam_role_policy" "alma_sftp_policy" {
 # Create the Route53 records for the transfer server
 resource "aws_route53_record" "alma_sftp_dns_pri" {
   name    = "${var.workspace_hostname}.mitlib.net"
-  zone_id = var.dns_zone_id_pri
+  zone_id = module.shared.private_zoneid
   type    = "CNAME"
   ttl     = "300"
   records = ["${aws_transfer_server.alma_sftp.id}.server.transfer.us-east-1.amazonaws.com"]
@@ -130,7 +130,7 @@ resource "aws_route53_record" "alma_sftp_dns_pri" {
 
 resource "aws_route53_record" "alma_sftp_dns_pub" {
   name    = "${var.workspace_hostname}.mitlib.net"
-  zone_id = var.dns_zone_id_pub
+  zone_id = module.shared.public_zoneid
   type    = "CNAME"
   ttl     = "300"
   records = ["${aws_transfer_server.alma_sftp.id}.server.transfer.us-east-1.amazonaws.com"]

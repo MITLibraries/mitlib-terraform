@@ -1,13 +1,3 @@
-variable "dns_zone_id_pri" {
-  type        = string
-  description = "Private DNS Zone for the Route53 Record"
-}
-
-variable "dns_zone_id_pub" {
-  type        = string
-  description = "Public DNS Zone for the Route53 Record"
-}
-
 variable "workspace_hostname" {
   type        = string
   description = "The hostname of the SFTP server"
@@ -24,7 +14,7 @@ variable "expire_in_days" {
   default     = "30"
 }
 
-variable "exlibris_ssh" {
+variable "exlibris_ssh_pubkey" {
   type        = string
   description = "Public SSH key for the ExLibris SSH user"
 }
@@ -34,7 +24,7 @@ variable "lifecycle_rule" {
   description = "Enable lifecycle events on this object"
 }
 
-variable "mitlib_ssh" {
+variable "mitlib_ssh_pubkey" {
   type        = string
   description = "Public SSH key for the MIT Libraries SSH user"
 }

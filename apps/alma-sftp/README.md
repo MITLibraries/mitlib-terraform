@@ -1,6 +1,7 @@
 # Alma SFTP Server
 
-This folder contains AWS resources needed for the deployment of the [Alma SFTP server](https://alma-sftp.mitlib.net)].
+This folder contains AWS resources needed for the deployment of the [Alma SFTP server](https://alma-sftp.mitlib.net).
+The request for this infrastructure is documented in Jira task [IMP-1714](https://mitlibraries.atlassian.net/browse/IMP-1714)
 
 ### What's created?:
 * An S3 bucket for storing SFTP files with a 30-day retention policy
@@ -12,8 +13,6 @@ This folder contains AWS resources needed for the deployment of the [Alma SFTP s
 ### Input Variables
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|----------|
-| dns_zone_id_pri | Private DNS Zone for the Route53 Record | string | n/a | yes |
-| dns_zone_id_pub | Public DNS Zone for the Route53 Record | string | n/a | yes |
 | enable_expire_objects | Specifies expiration lifecycle rule status | string | "false" | no |
 | expire_in_days | Number of days after which to expunge the objects | string | "90" | no |
 | exlibris_ssh | SSH key for the Ex Libris user | string | n/a | yes |
